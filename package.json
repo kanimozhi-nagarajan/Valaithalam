@@ -1,0 +1,28 @@
+{
+  "name": "devtinder",
+  "version": "1.0.0",
+  "description": "Tinder for developers",
+  "keywords": [
+    "javascript",
+    "nodejs"
+  ],
+  "homepage": "https://github.com/kanimozhi-nagarajan/DevTinder#readme",
+  "bugs": {
+    "url": "https://github.com/kanimozhi-nagarajan/DevTinder/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kanimozhi-nagarajan/DevTinder.git"
+  },
+  "license": "ISC",
+  "author": "Kanimozhi Nagarajan",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10"
+  }
+}
