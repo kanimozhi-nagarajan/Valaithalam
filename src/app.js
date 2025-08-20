@@ -1,20 +1,110 @@
 const express = require('express');
 
+const { adminAuth ,userAuth} = require('./middleware/auth');
+
 const app = express();
 
+//use try and catch to handle errors gracefully
 
-app.get("/user",(req,res,next)=>{
-    res.send("Response!");
-    next();
-},
-    (req,res,next)=>{
-        res.send("Response2!");
-        next();
-    },
-    (req,res)=>{
-        res.send("Response3!");
-    }
-);
+app.get("/user/login",(req,res)=>{
+    res.send("user login");
+})
+
+app.get("/user/getAllUsers" ,userAuth,(req, res) => {
+try{
+//  throw new error("abcd");    
+    res.send("All users");
+}catch(err){
+    console.log(err);
+    res.status(500).send("Something went wrong Contact Admin for support");
+}
+   
+});
+
+// app.get("/admin/getAllUsers" ,userAuth,(req, res) => {
+
+//     throw new error("abcd");    
+//     res.send("All users");
+// });
+
+app.use("/",(err,req,res,next)=>{
+if(err){
+    // console.log(err);
+    res.status(500).send("Something went wrong");
+}
+});
+
+// app.use("/admin",adminAuth);
+
+// app.get("/admin/getAllUsers" ,(req, res) => {
+//     res.send("All users");
+// });
+
+// app.delete("/admin/deleteUser", (req, res) => {
+//     res.send("User deleted");
+// });
+
+
+
+// app.use("/admin",(req,res,next)=>{
+//     console.log("Admin middleware");
+// const token ="token";
+// const isAuthenticated = token==="token";
+// if(!isAuthenticated){
+//      res.status(401).send("Unauthorized");
+// }
+// else {
+//    next();
+// }
+// });
+
+// app.get("/admin/getAllUsers", (req, res) => {
+//     res.send("All users");
+// });
+
+// app.delete("/admin/deleteUser", (req, res) => {
+//     res.send("User deleted");
+// });
+
+// app.get("/admin/getAllUsers", (req, res) => {
+//     const token ="token12";
+//     const isAuthenticated = token==="token";
+//     if(isAuthenticated){
+//          res.send("All users");
+//     }
+//     else {
+//         res.status(401).send("Unauthorized");
+//     }
+// }); 
+
+// app.get("/admin/deleteUser", (req, res) => {
+//     const token ="token";
+//     const isAuthenticated = token==="token";
+//     if(isAuthenticated){
+//          res.send("User deleted");
+//     }
+//     else {
+//         res.status(401).send("Unauthorized");
+//     }
+// }); 
+
+// app.delete("/admin/deleteUser", (req, res) => {
+//     res.send("User deleted");
+// });
+
+// app.get("/user",(req,res,next)=>{
+//     // res.send("Response!");
+//     next();
+// },
+//     (req,res,next)=>{
+//         // res.send("Response2!");
+//         next();
+//     },
+//     (req,res,next)=>{
+//         res.send("Response3!");
+//         next();
+//     }
+// );
 
 // // works for express 4
 // // ***********************
