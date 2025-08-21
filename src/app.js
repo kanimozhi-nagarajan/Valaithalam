@@ -8,11 +8,30 @@ const {connectDB} = require('./config/database')
 
 const User = require('./models/user');
 
+const {signUpValidator} = require('./utils/validators');
+
+const bcrypt = require('bcrypt');
+const e = require('express');
+
 app.use(express.json());
 
 app.post("/user/signup",async(req,res)=>{
 
-   const user = new User(req.body);
+    //Validation
+    signUpValidator(req);
+
+    //password hashing
+    const {password} = req.body;
+
+    const hashedPassword = await bcrypt.hash(password,10);
+
+
+   const user = new User({
+      firstName:req.body.firstName,
+      lastName:req.body.lastName,
+      email:req.body.email,
+      password:hashedPassword
+   });
 
    try{
     await user.save();
@@ -82,10 +101,29 @@ app.patch("/user",async(req,res)=>{
     const userId = req.body.userId
     const data = req.body
 
+    const ALLOWED_UPDATE_FIELDS =[
+        "userId","firstName","lastName","gender","age","skills","about","photoURL"]
+
+    const isValidated = Object.keys(data).every((k)=>
+        ALLOWED_UPDATE_FIELDS.includes(k));
+
+    if(!isValidated){
+        // res.status(400).send("Invalid update"); has to be handled in catch block so
+
+        throw new Error("Invalid update")
+    }
+
+    if(data?.skills?.length>10){
+        throw new Error("Too many skills");
+    }
+
     try{
 
-        const user = await User.findByIdAndUpdate(userId,data)
+        const user = await User.findByIdAndUpdate(userId,data,{
+            runValidators:true
+        })
         if(user.length===0){
+
             res.status(404).send("User not found");
         }
         else{
@@ -94,7 +132,34 @@ app.patch("/user",async(req,res)=>{
     }
     catch(err){
         console.log(err);
-        res.status(500).send("Something went wrong");
+        res.status(500).send("Update failed"+ err.message
+        );
+    }
+})
+
+app.post("/user/login",async(req,res)=>{
+
+    const {email,password} = req.body;
+
+    try{
+        const user = await User.findOne({email:email})
+        if(!user){
+            throw new Error("Invalid credentials");
+        }
+        
+        const isPasswordValid = await bcrypt.compare(password,user.password)
+        
+        if(isPasswordValid){
+            res.send("Login successful");
+        }
+        else{
+            throw new Error("Invalid credentials");
+        }
+    
+    }
+    catch(err){
+        console.log(err);
+        res.status(500).send("Invalid login: "+ err.message);
     }
 })
 connectDB()
