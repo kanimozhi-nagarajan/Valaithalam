@@ -4,22 +4,72 @@ const { adminAuth ,userAuth} = require('./middleware/auth');
 
 const app = express();
 
-//use try and catch to handle errors gracefully
+const {connectDB} = require('./config/database')
 
-app.get("/user/login",(req,res)=>{
-    res.send("user login");
+const User = require('./models/user');
+
+app.post("/user/signup",async(req,res)=>{
+
+   const user = new User({
+    firstName:"Arulraj",
+    lastName:"Nagarajan",
+    email:"arulrajnagarajan@gmail.com",
+    password:"password",
+    age:16
+   })
+
+   try{
+    await user.save();
+   res.send("user signup details saved successfully");
+   }
+   catch(err){
+    console.log(err);
+    res.status(500).send("Something went wrong");
+   }    
 })
 
-app.get("/user/getAllUsers" ,userAuth,(req, res) => {
-try{
-//  throw new error("abcd");    
-    res.send("All users");
-}catch(err){
-    console.log(err);
-    res.status(500).send("Something went wrong Contact Admin for support");
-}
-   
+connectDB()
+.then(()=>{
+    console.log("Database connected successfully");
+
+    app.listen(7777,()=>{
+    console.log("Server is listening at 7777");
 });
+})
+.catch((err)=>{
+    console.log("Database connection failed",err);
+})
+
+   // or
+    //     const userObj =
+    // {
+    //     firstName:"Nagarajan",
+    //     lastName:"Alagapan",
+    //     email:"nagarajanalagapan@gmail.com",
+    //     password:"password",
+    //     age:52
+    // }
+  
+    // const user = new User(userObj);
+    // await user.save();
+    // res.send("user signup details saved successfully");
+
+// //use try and catch to handle errors gracefully
+
+// app.get("/user/login",(req,res)=>{
+//     res.send("user login");
+// })
+
+// app.get("/user/getAllUsers" ,userAuth,(req, res) => {
+// try{
+// //  throw new error("abcd");    
+//     res.send("All users");
+// }catch(err){
+//     console.log(err);
+//     res.status(500).send("Something went wrong Contact Admin for support");
+// }
+   
+// });
 
 // app.get("/admin/getAllUsers" ,userAuth,(req, res) => {
 
@@ -27,12 +77,12 @@ try{
 //     res.send("All users");
 // });
 
-app.use("/",(err,req,res,next)=>{
-if(err){
-    // console.log(err);
-    res.status(500).send("Something went wrong");
-}
-});
+// app.use("/",(err,req,res,next)=>{
+// if(err){
+//     // console.log(err);
+//     res.status(500).send("Something went wrong");
+// }
+// });
 
 // app.use("/admin",adminAuth);
 
@@ -157,7 +207,3 @@ if(err){
 // app.use("/",(req,res)=>{
 //     res.send("Health");
 // });
-
-app.listen(7777,()=>{
-    console.log("Server is listening at 7777");
-});
