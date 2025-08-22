@@ -62,12 +62,15 @@ app.post("/user/login",async(req,res)=>{
             throw new Error("Invalid credentials");
         }
         
-        const isPasswordValid = await bcrypt.compare(password,user.password)
+        // const isPasswordValid = await bcrypt.compare(password,user.password)
 
+        const isPassWordValid = await user.comparePassword(password);
         
         if(isPasswordValid){
 
-           const token = await jwt.sign({ _id: user._id  }, "samplesecretkey");
+            const token = await user.getJWT();
+
+        //    const token = await jwt.sign({ _id: user._id  }, "samplesecretkey",{ expiresIn: '1d' });
 
             // res.cookie("token","sadfghjkliuHGJKHkyghfgjk")
             res.cookie("token",token);
@@ -221,6 +224,37 @@ connectDB()
     console.log("Database connection failed",err);
 })
 
+// app.post("/user/login",async(req,res)=>{
+
+//     const {email,password} = req.body;
+
+//     try{
+//         const user = await User.findOne({email:email})
+//         if(!user){
+//             throw new Error("Invalid credentials");
+//         }
+        
+//         const isPasswordValid = await bcrypt.compare(password,user.password)
+
+        
+//         if(isPasswordValid){
+
+//            const token = await jwt.sign({ _id: user._id  }, "samplesecretkey",{ expiresIn: '1d' });
+
+//             // res.cookie("token","sadfghjkliuHGJKHkyghfgjk")
+//             res.cookie("token",token);
+//             res.send("Login successful");
+//         }
+//         else{
+//             throw new Error("Invalid credentials");
+//         }
+    
+//     }
+//     catch(err){
+//         console.log(err);
+//         res.status(500).send("Invalid login: "+ err.message);
+//     }
+// })
 
 // app.get("/user/profile",userAuth,async (req,res)=>
 // {
