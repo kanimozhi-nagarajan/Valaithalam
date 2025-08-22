@@ -1,7 +1,5 @@
 const express = require('express');
 
-const { adminAuth ,userAuth} = require('./middleware/auth');
-
 const app = express();
 
 const {connectDB} = require('./config/database')
@@ -15,6 +13,11 @@ const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 
 const jwt = require('jsonwebtoken');
+
+const {userAuth} = require('./middleware/auth');
+
+// const { adminAuth ,userAuth} = require('./middleware/auth');
+
 
 app.use(express.json());
 
@@ -44,8 +47,8 @@ app.post("/user/signup",async(req,res)=>{
    }
    catch(err){
     console.log(err);
-    res.status(500).send("Something went wrong");
-   }    
+    res.status(500).send("Error: " + err.message);
+   }
 })
 
 
@@ -81,39 +84,37 @@ app.post("/user/login",async(req,res)=>{
     }
 })
 
-app.get("/user/profile",async (req,res)=>
+app.get("/user/profile",userAuth,async (req,res)=>
 {
   
     try{
-          const cookies = req.cookies;
-
-    const {token} = cookies
-
-    if(!token){
-        throw new Error("Unauthorized");  
-    }
-
-    const decodedMessage = jwt.verify(token,"samplesecretkey")
-
-    const {_id} = decodedMessage;
-
-    console.log(_id);
-
-    const user = await User.findById(_id);
-
-    if(!user){
-        throw new Error("Unauthorized");
-    }
-
-       console.log(cookies);
+        const user = req.user;
         res.send(user); 
     }
     catch(err)
     {
         console.log(err);
-        res.status(500).send("Something went wrong");
+        res.status(500).send("Error :" + err.message);
     }
 })
+
+app.post("/user/sendingConnectionRequest",userAuth, async(req,res)=>{
+    try
+{
+     const user = req.user;
+
+    console.log("Sending connection request");
+
+    res.send("Connection request sent" + user);
+}
+catch(err)
+{
+    console.log(err);
+    res.status(500).send("Error :" + err.message);
+}
+})
+
+
 app.get("/user/feed",async (req,res)=>{
 
     try{
@@ -208,7 +209,6 @@ app.patch("/user",async(req,res)=>{
     }
 })
 
-
 connectDB()
 .then(()=>{
     console.log("Database connected successfully");
@@ -220,6 +220,43 @@ connectDB()
 .catch((err)=>{
     console.log("Database connection failed",err);
 })
+
+
+// app.get("/user/profile",userAuth,async (req,res)=>
+// {
+  
+//     try{
+//     //       const cookies = req.cookies;
+
+//     // const {token} = cookies
+
+//     // if(!token){
+//     //     throw new Error("Unauthorized");  
+//     // }
+
+//     // const decodedMessage = jwt.verify(token,"samplesecretkey")
+
+//     // const {_id} = decodedMessage;
+
+//     // console.log(_id);
+
+//     // const user = await User.findById(_id);
+
+//     // if(!user){
+//     //     throw new Error("Unauthorized");
+//     // }
+
+//     //    console.log(cookies);
+
+//         const user = req.user;
+//         res.send(user); 
+//     }
+//     catch(err)
+//     {
+//         console.log(err);
+//         res.status(500).send("Error :" + err.message);
+//     }
+// })
 
    // or
     //     const userObj =
