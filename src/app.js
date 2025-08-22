@@ -11,9 +11,14 @@ const User = require('./models/user');
 const {signUpValidator} = require('./utils/validators');
 
 const bcrypt = require('bcrypt');
-const e = require('express');
+
+const cookieParser = require('cookie-parser');
+
+const jwt = require('jsonwebtoken');
 
 app.use(express.json());
+
+app.use(cookieParser());
 
 app.post("/user/signup",async(req,res)=>{
 
@@ -43,6 +48,72 @@ app.post("/user/signup",async(req,res)=>{
    }    
 })
 
+
+app.post("/user/login",async(req,res)=>{
+
+    const {email,password} = req.body;
+
+    try{
+        const user = await User.findOne({email:email})
+        if(!user){
+            throw new Error("Invalid credentials");
+        }
+        
+        const isPasswordValid = await bcrypt.compare(password,user.password)
+
+        
+        if(isPasswordValid){
+
+           const token = await jwt.sign({ _id: user._id  }, "samplesecretkey");
+
+            // res.cookie("token","sadfghjkliuHGJKHkyghfgjk")
+            res.cookie("token",token);
+            res.send("Login successful");
+        }
+        else{
+            throw new Error("Invalid credentials");
+        }
+    
+    }
+    catch(err){
+        console.log(err);
+        res.status(500).send("Invalid login: "+ err.message);
+    }
+})
+
+app.get("/user/profile",async (req,res)=>
+{
+  
+    try{
+          const cookies = req.cookies;
+
+    const {token} = cookies
+
+    if(!token){
+        throw new Error("Unauthorized");  
+    }
+
+    const decodedMessage = jwt.verify(token,"samplesecretkey")
+
+    const {_id} = decodedMessage;
+
+    console.log(_id);
+
+    const user = await User.findById(_id);
+
+    if(!user){
+        throw new Error("Unauthorized");
+    }
+
+       console.log(cookies);
+        res.send(user); 
+    }
+    catch(err)
+    {
+        console.log(err);
+        res.status(500).send("Something went wrong");
+    }
+})
 app.get("/user/feed",async (req,res)=>{
 
     try{
@@ -137,31 +208,7 @@ app.patch("/user",async(req,res)=>{
     }
 })
 
-app.post("/user/login",async(req,res)=>{
 
-    const {email,password} = req.body;
-
-    try{
-        const user = await User.findOne({email:email})
-        if(!user){
-            throw new Error("Invalid credentials");
-        }
-        
-        const isPasswordValid = await bcrypt.compare(password,user.password)
-        
-        if(isPasswordValid){
-            res.send("Login successful");
-        }
-        else{
-            throw new Error("Invalid credentials");
-        }
-    
-    }
-    catch(err){
-        console.log(err);
-        res.status(500).send("Invalid login: "+ err.message);
-    }
-})
 connectDB()
 .then(()=>{
     console.log("Database connected successfully");
