@@ -62,7 +62,7 @@ app.post("/user/login",async(req,res)=>{
             throw new Error("Invalid credentials");
         }
         
-        const isPassWordValid = await user.comparePassword(password);
+        const isPasswordValid = await user.comparePassword(password);
         
         if(isPasswordValid){
 
