@@ -23,32 +23,9 @@ const userAuth = async(req, res, next) => {
     }
     catch(err){
         console.log(err);
-        res.status(500).send("Error : " + err.message  );
+        res.status(500).send("User Auth Middleware Error : " + err.message  );
     }
 }
 
 module.exports = {userAuth}
 
-// const adminAuth = (req, res, next) => {
-//     const token = "token";
-//     const isAuthenticated = token==="token"
-//     if(!isAuthenticated){
-//         res.status(401).send("Unauthorized")
-//     }
-//     else{
-//         next();
-//     }
-// }
-
-// const userAuth = (req, res, next) => {
-//     const token = "token";
-//     const isAuthenticated = token==="token"
-//     if(!isAuthenticated){
-//         res.status(401).send("Unauthorized")
-//     }
-//     else{
-//         next();
-//     }
-// }
-
-// module.exports = {adminAuth,userAuth}
