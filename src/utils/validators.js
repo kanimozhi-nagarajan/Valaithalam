@@ -15,4 +15,23 @@ const signUpValidator = (req)=>{
     }
    }
 
-   module.exports = {signUpValidator}
+const editValidator = (req)=>{
+    
+    allowedEditFields = [
+        "firstName",
+        "lastName",
+        "email",
+        "gender",
+        "age",
+        "skills",
+        "about",
+        "photoURL"
+    ]
+
+    const isEditAllowed = Object.keys(req.body).every((k)=>
+        allowedEditFields.includes(k)
+    );
+
+    return isEditAllowed;
+}
+   module.exports = {signUpValidator,editValidator}

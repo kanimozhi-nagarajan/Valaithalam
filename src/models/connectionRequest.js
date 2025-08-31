@@ -1,32 +1,44 @@
 const mongoose = require("mongoose")
 
-const User = require("./user")
+const connectionRequestSchema = new mongoose.Schema({
 
-const connectionRequestSchema = new Schema({
-
-    fromuUserId:{
-        type: String,
+    fromUserId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"User",
         required: true,
-        ref:"User"
     },
     toUserId:{
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
+          ref:"User",
         required: true,
-        ref:"User"
-
+      
     },
     status:{
-        type:string,
+        type:String,
+        required: true,
         enum:{
             values:["interested","ignored","accepted","rejected"],
             message:"{VALUE} is not supported"
-        }
-    }
-
+        },
+    },
 },
 {
-    timestamp:true
+    timestamps:true
 }
 )
 
-module.export = mongoose.model("ConnectionRequests",connectionRequestSchema)
+connectionRequestSchema.index({
+    fromUserId:1,
+    toUserId:1
+})
+
+connectionRequestSchema.pre("save",function(next){
+    const connectionRequest = this ;
+
+    if(connectionRequest.fromUserId.equals(connectionRequest.toUserId)){
+        throw new Error("Cannot send connection request to yourself");
+    }
+    next();
+});
+
+module.exports = mongoose.model("ConnectionRequest",connectionRequestSchema);

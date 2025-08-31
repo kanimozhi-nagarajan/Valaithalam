@@ -1,144 +1,141 @@
 const express = require('express'); 
 
+const userRouter = express.Router();
+
 const User = require('../models/user');
+
+const ConnectionRequest = require('../models/connectionRequest');
 
 const {userAuth} = require('../middleware/auth')
 
-const userRouter = express.Router();
+const USER_DATA = "firstName lastName age gender skills about photoURL";
 
-userRouter.get("/user/feed",async (req,res)=>{
+userRouter.get("/user/requests/received",userAuth,
+    async(req,res)=>{
+        try{
 
-    try{
-     const users = await User.find()
-    res.send(users);
-     }
-    catch(err)
-    {
-        console.log(err);
-        res.status(500).send("Something went wrong");
-    }
-})
+           const loggedInUser = req.user
 
-userRouter.get("/user/view",userAuth,async (req,res)=>{
-    const user = req.user;
-    const email = req.user.email
-    try{
-   const users = await User.find({email:email});
-   if(users.length===0){
-   throw new Error("User not found");
-   }
-   else{
-        res.send(users);
-   }
+           const connectionRequestsReceived = await ConnectionRequest.find({
+               toUserId:loggedInUser._id,
+               status:"interested"
+           }).populate("fromUserId",USER_DATA);
 
-    }
-    catch(err)
-    {
-        console.log(err);
-        res.status(500).send("Error :" + err.message );
-    }
-})
+            const data = connectionRequestsReceived
 
-userRouter.patch("/user/edit",async(req,res)=>{
-
-    const userId = req.body.userId
-    const data = req.body
-
-    const ALLOWED_UPDATE_FIELDS =[
-        "userId","firstName","lastName","gender","age","skills","about","photoURL"]
-
-    const isValidated = Object.keys(data).every((k)=>
-        ALLOWED_UPDATE_FIELDS.includes(k));
-
-    if(!isValidated){
-        // res.status(400).send("Invalid update"); has to be handled in catch block so
-
-        throw new Error("Invalid update")
-    }
-
-    if(data?.skills?.length>10){
-        throw new Error("Too many skills");
-    }
-
-    try{
-
-        const user = await User.findByIdAndUpdate(userId,data,{
-            runValidators:true
-        })
-        if(user.length===0){
-
-            res.status(404).send("User not found");
+            res.json({
+                message:"Connections requests received fetched successfully",
+                data,
+            })
         }
-        else{
-            res.send("User updated successfully");
-            }
-    }
-    catch(err){
-        console.log(err);
-        res.status(500).send("Update failed"+ err.message
-        );
-    }
-})
-
-// userRouter.patch("/user/password",async(req,res)=>{
-
-//     const userId = req.body.userId
-//     const data = req.body
-
-//     const ALLOWED_UPDATE_FIELDS =[
-//         "userId","firstName","lastName","gender","age","skills","about","photoURL"]
-
-//     const isValidated = Object.keys(data).every((k)=>
-//         ALLOWED_UPDATE_FIELDS.includes(k));
-
-//     if(!isValidated){
-//         // res.status(400).send("Invalid update"); has to be handled in catch block so
-
-//         throw new Error("Invalid update")
-//     }
-
-//     if(data?.skills?.length>10){
-//         throw new Error("Too many skills");
-//     }
-
-//     try{
-
-//         const user = await User.findByIdAndUpdate(userId,data,{
-//             runValidators:true
-//         })
-//         if(user.length===0){
-
-//             res.status(404).send("User not found");
-//         }
-//         else{
-//             res.send("User updated successfully");
-//             }
-//     }
-//     catch(err){
-//         console.log(err);
-//         res.status(500).send("Update failed"+ err.message
-//         );
-//     }
-// })
-
-userRouter.delete("/user", async (req,res)=>{
-
-    const userId = req.body.userId;
-
-    try{
-        const user = await User.findByIdAndDelete(userId)
-        if(!user){
-            res.status(404).send("User not found");
-        }
-        else{
-            res.send("User deleted successfully");
+        catch(err)
+        {
+            console.log(err);
+            res.status(500).send("Error" + err.message);
         }
     }
-    catch(err){
-        console.log(err);
-        res.status(500).send("Something went wrong");
-    }
+)
 
-})
+
+userRouter.get("/user/connections",userAuth,
+    async(req,res)=>{
+        try{
+
+           const loggedInUser = req.user
+
+           const connections = await ConnectionRequest.find({
+            $or:[{
+                fromUserId:loggedInUser._id,
+                status:"accepted"
+            },
+            {
+                toUserId:loggedInUser._id,
+                status:"accepted"
+            }]
+           }).populate("fromUserId",USER_DATA)
+            .populate("toUserId",USER_DATA);
+
+            const data = connections.map((connections)=>{
+                if(connections.fromUserId._id.toString() === loggedInUser._id.toString()){
+                    return connections.toUserId;
+                }
+                else{
+                    return connections.fromUserId;
+                }
+            })
+
+            res.json({
+                message:"Connections fetched successfully",
+                data,
+            })
+        }
+        catch(err)
+        {
+            console.log(err);
+            res.status(500).send("Error" + err.message);
+        }
+    }
+)
+
+
+
+userRouter.get("/user/feed",userAuth,
+    async(req,res)=>{
+        try{
+             const loggedInUser = req.user
+
+             const page = req.query.page || 1;
+             let limit = req.query.limit || 10;
+
+             limit = limit > 50 ? 50 : limit;
+             const skip = (page - 1) * limit;
+
+             const connections = await ConnectionRequest.find({
+                $or:[{
+                  fromUserId:loggedInUser._id,
+                },
+                {
+                  toUserId:loggedInUser._id
+                }]
+             }).select("toUserId fromUserId")
+
+
+             const hideConnectionsIds = new Set();
+
+             connections.forEach((connections)=>{
+                hideConnectionsIds.add(connections.fromUserId.toString());
+                hideConnectionsIds.add(connections.toUserId.toString());
+             })
+
+             const users = await User.find({
+                 $and:[
+                    {
+                     _id :{
+                        $nin: Array.from(hideConnectionsIds)
+                     }
+                 },
+                 {
+                     _id: {
+                        $ne: loggedInUser._id
+                     }
+                 }]
+             }).select(USER_DATA)
+             .limit(limit)
+             .skip(skip);
+
+             const data = users           
+
+            res.json({
+                message:"User feed fetched successfully",
+                data,
+            })
+        }
+        catch(err)
+        {
+            console.log(err);
+            res.status(500).send("Error" + err.message);
+        }
+    }
+)
 
 module.exports = userRouter

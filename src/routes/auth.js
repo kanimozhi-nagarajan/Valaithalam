@@ -12,26 +12,50 @@ const bcrypt = require('bcrypt');
 const {signUpValidator} = require('../utils/validators');
 
 authRouter.post("/signup",async(req,res)=>{
-
+   try{
     //Validation
     signUpValidator(req);
 
+    
     //password hashing
     const {password} = req.body;
 
     const hashedPassword = await bcrypt.hash(password,10);
-
-
-   const user = new User({
+       const user = new User({
       firstName:req.body.firstName,
       lastName:req.body.lastName,
       email:req.body.email,
       password:hashedPassword
    });
 
-   try{
-    await user.save();
-   res.send("user signup details saved successfully");
+     const savedUser =  await user.save();
+
+     res.json({message:"user signup details saved successfully",
+     data:savedUser
+   });
+
+// const {firstName,lastName,email} = req.body;
+
+// const user = new User({
+//     firstName,
+//     lastName,
+//     email,
+//     password:hashedPassword
+// });
+
+//     const savedUser = await user.save();
+//     const token = await savedUser.getJWT();
+
+//     res.cookie("token",token,
+//         {
+//             expires:new Date(Date.now() + 24 * 60 * 60 * 1000)
+//         }
+//     );
+//    res.json({message:"user signup details saved successfully",
+//     data:user
+//    });
+
+
    }
    catch(err){
     console.log(err);
@@ -55,7 +79,11 @@ authRouter.post("/login",async(req,res)=>{
 
             const token = await user.getJWT();
 
-            res.cookie("token",token);
+            res.cookie("token",token,
+                {
+                    expires:new Date(Date.now() + 24 * 60 * 60 * 1000)
+                }
+            );
             res.send("Login successful");
         }
         else{
