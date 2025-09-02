@@ -4,17 +4,7 @@ const app = express();
 
 const {connectDB} = require('./config/database')
 
-// const User = require('./models/user');
-
-// const {signUpValidator} = require('./utils/validators');
-
-// const bcrypt = require('bcrypt');
-
 const cookieParser = require('cookie-parser');
-
-// const jwt = require('jsonwebtoken');
-
-// const {userAuth} = require('./middleware/auth');
 
 const authRouter = require('./routes/auth');
 
@@ -23,6 +13,17 @@ const connectionRequestRouter = require('./routes/connectionRequest');
 const profileRouter = require('./routes/profile');
 
 const userRouter = require('./routes/user');
+
+const cors = require('cors');
+
+const { FRONT_END_URL } = require('./utils/constants');
+
+app.use(cors({
+    // origin:"http://localhost:5173",
+        origin: FRONT_END_URL,
+
+    credentials:true
+}));
 
 app.use(express.json());
 

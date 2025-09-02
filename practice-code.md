@@ -1,3 +1,26 @@
+snippet of signUp logic 
+
+const {firstName,lastName,email} = req.body;
+
+const user = new User({
+    firstName,
+    lastName,
+    email,
+    password:hashedPassword
+});
+
+    const savedUser = await user.save();
+    const token = await savedUser.getJWT();
+
+    res.cookie("token",token,
+        {
+            expires:new Date(Date.now() + 24 * 60 * 60 * 1000)
+        }
+    );
+   res.json({message:"user signup details saved successfully",
+    data:user
+   });
+
 const { adminAuth ,userAuth} = require('./middleware/auth');
 
 

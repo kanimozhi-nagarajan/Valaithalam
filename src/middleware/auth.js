@@ -9,7 +9,7 @@ const userAuth = async(req, res, next) => {
     const {token} = cookies;
 
     if(!token){
-        throw new Error("Unauthorized");
+     return res.status(401).send("Unauthorized");
     }
 
     const decodedData = jwt.verify(token,"samplesecretkey");

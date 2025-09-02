@@ -11,7 +11,10 @@ profileRouter.get("/profile/view",userAuth,async (req,res)=>
   
     try{
         const user = req.user;
-        res.send(user); 
+        res.json({
+            message:"Profile fetched successfully",
+            data:user
+        })
     }
     catch(err)
     {
