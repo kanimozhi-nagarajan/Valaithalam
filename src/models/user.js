@@ -46,7 +46,7 @@ const UserSchema = mongoose.Schema({
     gender:{
         type: String,
         validate(value){
-            if(!["male"||"female"||"transgender"].includes(value)){
+            if(!["male","female","transgender"].includes(value)){
                 throw new Error("Invalid gender")
             } 
         }
@@ -77,8 +77,12 @@ const UserSchema = mongoose.Schema({
 UserSchema.methods.getJWT =async function (){
      const user = this;
 
-     const token = await jwt.sign({ _id: user._id  }, 
-        "samplesecretkey",{ expiresIn: '1d' });
+     const token = await jwt.sign
+       (
+        { _id: user._id  }, 
+        "samplesecretkey",
+        { expiresIn: '1d' }
+     );
 
     return token
     
@@ -88,7 +92,11 @@ UserSchema.methods.comparePassword = async function (passwordGivenByUser){
 
     const user = this;
 
-    const isPassWordValid = await bcrypt.compare(passwordGivenByUser,user.password);
+    const isPassWordValid = await bcrypt.
+    compare (
+        passwordGivenByUser,
+        user.password
+    );
 
     return isPassWordValid
 }   

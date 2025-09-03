@@ -4,8 +4,6 @@ const authRouter = express.Router();
 
 const User = require('../models/user');
 
-const userAuth = require('../middleware/auth')
-
 const bcrypt = require('bcrypt');
 
 
@@ -29,6 +27,12 @@ authRouter.post("/signup",async(req,res)=>{
    });
 
      const savedUser =  await user.save();
+
+     const token = await savedUser.getJWT();
+
+     res.cookie("token",token,{
+        expires : new Date(Date.now() + 24 * 60 * 60 * 1000)
+     })
 
      res.json({message:"user signup details saved successfully",
      data:savedUser

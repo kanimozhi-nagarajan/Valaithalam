@@ -38,7 +38,7 @@ try{
     await loggedInUser.save();
 
     res.json({
-        message:"${loggedInUser.firstName} profile updated successfully",
+        message:`${loggedInUser.firstName}'s profile updated successfully`
     })
 }
 catch(err){
