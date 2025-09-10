@@ -16,6 +16,8 @@ const userRouter = require('./routes/user');
 
 const cors = require('cors');
 
+require("dotenv").config();
+
 const { FRONT_END_URL } = require('./utils/constants');
 
 app.use(cors({
@@ -38,7 +40,7 @@ connectDB()
 .then(()=>{
     console.log("Database connected successfully");
 
-    app.listen(7777,()=>{
+    app.listen(process.env.PORT,()=>{
     console.log("Server is listening at 7777");
 });
 })

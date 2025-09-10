@@ -12,7 +12,7 @@ const userAuth = async(req, res, next) => {
      return res.status(401).send("Unauthorized");
     }
 
-    const decodedData = jwt.verify(token,"samplesecretkey");
+    const decodedData = jwt.verify(token,process.env.JWT_SECRET);
 
     const {_id} = decodedData;
     
